@@ -15,7 +15,7 @@ concurrency:
 
 jobs:
   deploy:
-    runs-on: [self-hosted, devbox]   # must match the devbox runner's labels
+    runs-on: [self-hosted, Linux, php]   # labels of the "devbox" runner (its name is not a label)
     steps:
       - uses: actions/checkout@v4
 
