@@ -244,32 +244,50 @@ Sheet **RATES** (used). Sheet **REF RATES** (reference rates) is ignored.
 
 ## 8. Output format
 
-`TableRenderer::render()` reproduces the structure of the original Alert table:
+`TableRenderer::render()` outputs the rates block **byte for byte as it appears in Alert's source view**, so the "HTML source" text can replace the old code in Alert's Source/HTML view with no differences. The structure:
 
 ```html
+<p></p>
 <table border="1" cellspacing="1" style="background-color: #062d6e; border-spacing: 1px; width: 100%;">
 <tbody>
-<tr>                                            <!-- dates, white text on dark blue -->
-<td width="27%"><p><span style="color: #ffffff;"><b>&nbsp;Date: 30/09/2026</b></span></p></td>
+<tr>
+<td width="27%">
+<p><span style="color: #ffffff;"><b>&nbsp;Date: 30/</b></span><span style="color: #ffffff;"><b>09/2026</b></span></p>
+</td>
 <td width="36%" colspan="2"></td>
-<td width="36%" colspan="2"><p><b><span style="color: #ffffff;">&nbsp;Value Date: 01/10/2026</span></b></p></td>
+<td width="36%" colspan="2">
+<p><b><span style="color: #ffffff;">&nbsp;Value Date: 01/10/2026</span><br /> </b></p>
+</td>
 </tr>
 <tr> … SPOT (colspan 2) | BANK NOTES (colspan 2), background #cdd4df … </tr>
 <tr> … CURRENCY | BNK SELLS | BNK BUYS | BNK SELLS | BNK BUYS (bold) … </tr>
 <tr>                                            <!-- one per currency, background #eaedf2 -->
-<td style="background-color: #eaedf2;"><p>USD</p></td>
-<td style="background-color: #eaedf2;"><p>1.1179</p></td>
+<td style="background-color: #eaedf2;">
+<p>USD</p>
+</td>
+<td style="background-color: #eaedf2;">
+<p><span>1.1179</span></p>                      <!-- first rate only -->
+</td>
 …
 </tr>
 </tbody>
 </table>
+<p></p>
+<p></p>
+<p></p>
+<table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse; width: 114px;"> … empty cell … </table>
 ```
 
-Cosmetic differences from the hand-edited original: the date is in one `<span>` instead of two, and stray `<br />` / empty `<span>` tags left by the editor are omitted. The displayed result is identical.
+Alert's source contains leftovers from its editor. They are reproduced on purpose so the source matches exactly (marked "Alert source:" in `TableRenderer.php`):
 
-**Verified:** for `RTS300926.xlsx` every cell of the generated table (attributes, dates, headings, 60 values) matches the table that was live on Alert for 30/09/2026. The only differences from Alert's page source are editor artefacts that do not change what is displayed: the date split over two `<span>`s, a trailing `<br />` in the Value Date cell, a `<span>` around one value, and empty `<p></p>` / a stray empty Excel table around the table (outside the code you replace).
+- the date split after `dd/` into two `<span>`s (`30/` + `09/2026`);
+- `<br /> ` at the end of the Value Date cell;
+- a bare `<span>` around the first rate of the first currency;
+- an empty `<p></p>` before the table, three after it, and an empty one-cell table pasted from Excel at the end.
 
-`tests/fixtures/alert-table-2026-09-30.html` holds that table as the tool outputs it. `tests/run.php` checks that the renderer reproduces it byte for byte, and, when `tests/fixtures/RTS300926.xlsx` is present, that the whole pipeline (file → table) does too. Change the golden file only if the Alert table itself changes.
+**Verified:** for `RTS300926.xlsx` the output is byte-identical to the source of the Alert page for 30/09/2026, both from `render()` and from the page's *HTML source* box (what **Copy HTML** copies).
+
+`tests/fixtures/alert-table-2026-09-30.html` is that Alert source. `tests/run.php` checks that the renderer reproduces it byte for byte, and, when `tests/fixtures/RTS300926.xlsx` is present, that the whole pipeline (file → HTML) does too. If the Alert page is ever edited, paste its new source into the golden file and adjust `render()` until the test passes.
 
 ---
 

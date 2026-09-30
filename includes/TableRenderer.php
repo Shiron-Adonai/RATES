@@ -2,7 +2,12 @@
 declare(strict_types=1);
 
 /**
- * TableRenderer — builds the exact HTML structure used on Alert Web Publisher.
+ * TableRenderer — builds the HTML of the rates block on Alert Web Publisher,
+ * byte for byte as in the page's source view, so it can replace that source.
+ *
+ * The source contains leftovers from Alert's editor that are reproduced on
+ * purpose (marked "Alert source:" below). Checked against the live page by
+ * tests/fixtures/alert-table-2026-09-30.html.
  */
 final class TableRenderer
 {
@@ -28,21 +33,26 @@ final class TableRenderer
         $row = "background-color: {$c['row_bg']};";
         $fg  = "color: {$c['title_fg']};";
 
-        $d  = self::escape(self::formatDate($date));
+        $d  = self::formatDate($date);
         $vd = self::escape(self::formatDate($valueDate));
+        // Alert source: the date is split after "dd/" into two spans ("30/" + "09/2026")
+        $dHead = self::escape(substr($d, 0, 3));
+        $dTail = self::escape(substr($d, 3));
 
         $html = [];
+        $html[] = '<p></p>';
         $html[] = "<table border=\"1\" cellspacing=\"1\" style=\"background-color: {$c['table_bg']}; border-spacing: 1px; width: 100%;\">";
         $html[] = '<tbody>';
 
         // Row 1: dates
         $html[] = '<tr>';
         $html[] = '<td width="27%">';
-        $html[] = "<p><span style=\"{$fg}\"><b>&nbsp;Date: {$d}</b></span></p>";
+        $html[] = "<p><span style=\"{$fg}\"><b>&nbsp;Date: {$dHead}</b></span><span style=\"{$fg}\"><b>{$dTail}</b></span></p>";
         $html[] = '</td>';
         $html[] = '<td width="36%" colspan="2"></td>';
         $html[] = '<td width="36%" colspan="2">';
-        $html[] = "<p><b><span style=\"{$fg}\">&nbsp;Value Date: {$vd}</span></b></p>";
+        // Alert source: trailing "<br /> " inside the bold
+        $html[] = "<p><b><span style=\"{$fg}\">&nbsp;Value Date: {$vd}</span><br /> </b></p>";
         $html[] = '</td>';
         $html[] = '</tr>';
 
@@ -67,17 +77,36 @@ final class TableRenderer
         $html[] = '</tr>';
 
         // Currency rows
+        $firstRow = true;
         foreach ($rates as $code => $values) {
             $html[] = '<tr>';
             $cells  = [$code, $values['spot_sell'], $values['spot_buy'], $values['note_sell'], $values['note_buy']];
-            foreach ($cells as $cell) {
+            foreach ($cells as $i => $cell) {
+                $text = self::escape((string) $cell);
+                // Alert source: the first rate of the first row is wrapped in a bare <span>
+                if ($firstRow && $i === 1) {
+                    $text = "<span>{$text}</span>";
+                }
                 $html[] = "<td style=\"{$row}\">";
-                $html[] = '<p>' . self::escape((string) $cell) . '</p>';
+                $html[] = "<p>{$text}</p>";
                 $html[] = '</td>';
             }
             $html[] = '</tr>';
+            $firstRow = false;
         }
 
+        $html[] = '</tbody>';
+        $html[] = '</table>';
+
+        // Alert source: empty paragraphs and an empty table pasted from Excel after the rates
+        $html[] = '<p></p>';
+        $html[] = '<p></p>';
+        $html[] = '<p></p>';
+        $html[] = '<table border="0" cellpadding="0" cellspacing="0" style="border-collapse: collapse; width: 114px;">';
+        $html[] = '<tbody>';
+        $html[] = '<tr height="34" style="height: 25.5pt;">';
+        $html[] = '<td height="34" class="xl64" width="114" style="height: 25.5pt; width: 86pt;"></td>';
+        $html[] = '</tr>';
         $html[] = '</tbody>';
         $html[] = '</table>';
 

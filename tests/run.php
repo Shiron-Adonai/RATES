@@ -240,8 +240,9 @@ unlink($xlsx);
 // --------------------------------------------------------------- renderer
 $renderer = new TableRenderer($config);
 $html = $renderer->render('2026-09-30', '2026-10-01', ['USD' => ['spot_sell' => '<b>', 'spot_buy' => '1', 'note_sell' => '1', 'note_buy' => '1']]);
-check('render escapes cells', true, str_contains($html, '<p>&lt;b&gt;</p>'));
-check('render dates', true, str_contains($html, 'Date: 30/09/2026') && str_contains($html, 'Value Date: 01/10/2026'));
+check('render escapes cells', true, str_contains($html, '&lt;b&gt;') && !str_contains($html, '<b></'));
+check('render dates', true, str_contains($html, 'Date: 30/</b></span><span style="color: #ffffff;"><b>09/2026') && str_contains($html, 'Value Date: 01/10/2026'));
+check('render first rate in span', true, str_contains($html, '<p><span>&lt;b&gt;</span></p>'));
 try {
     new TableRenderer(['colors' => ['table_bg' => 'red" onmouseover="x']] + $config);
     check('bad colour rejected', 'exception', 'none');
@@ -249,13 +250,13 @@ try {
     check('bad colour rejected', true, true);
 }
 
-// Golden file: the table published on Alert for 30/09/2026 (editor artefacts such as
-// split <span>s and a trailing <br /> removed; the rendered result is identical)
+// Golden file: the source of the rates block on Alert for 30/09/2026, exactly as
+// shown in Alert's source view (editor leftovers included)
 $golden = file_get_contents(__DIR__ . '/fixtures/alert-table-2026-09-30.html');
 preg_match_all('#<tr>\s*<td style="background-color: \#eaedf2;">\s*<p>([A-Z]{3})</p>.*?</tr>#s', $golden, $goldenRows, PREG_SET_ORDER);
 $goldenRates = [];
 foreach ($goldenRows as [$tr, $code]) {
-    preg_match_all('#<p>([^<]*)</p>#', $tr, $v);
+    preg_match_all('#<p>(?:<span>)?([^<]*)(?:</span>)?</p>#', $tr, $v);
     $goldenRates[$code] = array_combine(RateParser::FIELDS, array_slice($v[1], 1));
 }
 check('golden: 15 currency rows parsed', 15, count($goldenRates));
