@@ -172,7 +172,7 @@ $methodLabels = ['headers' => 'from headings', 'manual' => 'manually', 'position
             </div>
 
             <div class="tab-panel" id="tab-html" role="tabpanel" aria-labelledby="tab-btn-html" tabindex="0" hidden>
-                <p class="muted small">For Alert's Source / HTML view: select all the old table code and replace it with this.</p>
+                <p class="muted small">For Alert's Source / HTML view: select the whole old block (from the first <code>&lt;p&gt;&lt;/p&gt;</code> to the end of the small empty table after the rates) and replace it with this.</p>
                 <div class="form-actions">
                     <button type="button" class="btn btn-primary" data-copy="html">Copy HTML</button>
                     <span class="copy-status" aria-live="polite"></span>

@@ -63,7 +63,7 @@ There are two ways, depending on how you edit the page in Alert.
 
 1. Click the **HTML source** tab and press **Copy HTML**.
 2. In Alert, switch the editor to **Source** (usually a `<>` or "Source" button).
-3. Select everything from `<table` to `</table>` of the old rates table and delete it.
+3. Select the whole old rates block and delete it: from the `<p></p>` just before the rates `<table` down to the `</table>` of the small empty table after it. If the source contains nothing else, press **Ctrl+A** to select it all.
 4. Paste (**Ctrl+V**) in its place.
 5. Switch back to the normal view, check it, then save / publish.
 
