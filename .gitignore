@@ -1,2 +1,6 @@
 # Claude Code memory plugin data
 .remember/
+
+# Real bank files used for local testing (tests/fixtures/RTS*.xlsx)
+tests/fixtures/*.xlsx
+tests/fixtures/*.csv

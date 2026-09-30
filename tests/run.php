@@ -249,6 +249,18 @@ try {
     check('bad colour rejected', true, true);
 }
 
+// Golden file: the table published on Alert for 30/09/2026 (editor artefacts such as
+// split <span>s and a trailing <br /> removed; the rendered result is identical)
+$golden = file_get_contents(__DIR__ . '/fixtures/alert-table-2026-09-30.html');
+preg_match_all('#<tr>\s*<td style="background-color: \#eaedf2;">\s*<p>([A-Z]{3})</p>.*?</tr>#s', $golden, $goldenRows, PREG_SET_ORDER);
+$goldenRates = [];
+foreach ($goldenRows as [$tr, $code]) {
+    preg_match_all('#<p>([^<]*)</p>#', $tr, $v);
+    $goldenRates[$code] = array_combine(RateParser::FIELDS, array_slice($v[1], 1));
+}
+check('golden: 15 currency rows parsed', 15, count($goldenRates));
+check('golden: renderer output identical', $golden, $renderer->render('2026-09-30', '2026-10-01', $goldenRates) . "\n");
+
 // ------------------------------------------------------- real bank file
 $real = __DIR__ . '/fixtures/RTS300926.xlsx';
 if (is_file($real)) {
@@ -257,7 +269,10 @@ if (is_file($real)) {
     $rates = $parser->extractRates($sheet['rows'], $sheet['currency_rows'], $cols['mapping']);
     check('real file: method', 'headers', $cols['method']);
     check('real file: 15 currencies found', 15, count($sheet['currency_rows']));
-    echo "Real file USD: " . implode(' / ', $rates['USD']) . "  (compare with docs/TECHNICAL.md §13)\n";
+    $dates = $parser->detectDates($sheet['rows'], min(array_column($sheet['currency_rows'], 'row')));
+    check('real file: dates', ['date' => '2026-09-30', 'value_date' => '2026-10-02'], $dates);
+    $valueDate = RateParser::addBusinessDays($dates['date'], (int) $config['value_date_offset_days']);
+    check('real file: table identical to Alert (golden file)', $golden, $renderer->render($dates['date'], $valueDate, $rates) . "\n");
 }
 
 echo "\n{$passed} passed, {$failed} failed\n";

@@ -267,7 +267,9 @@ Sheet **RATES** (used). Sheet **REF RATES** (reference rates) is ignored.
 
 Cosmetic differences from the hand-edited original: the date is in one `<span>` instead of two, and stray `<br />` / empty `<span>` tags left by the editor are omitted. The displayed result is identical.
 
-**Verified:** for `RTS300926.xlsx` every cell of the generated table (dates, headings, 60 values) matches the table that was live on Alert for 30/09/2026.
+**Verified:** for `RTS300926.xlsx` every cell of the generated table (attributes, dates, headings, 60 values) matches the table that was live on Alert for 30/09/2026. The only differences from Alert's page source are editor artefacts that do not change what is displayed: the date split over two `<span>`s, a trailing `<br />` in the Value Date cell, a `<span>` around one value, and empty `<p></p>` / a stray empty Excel table around the table (outside the code you replace).
+
+`tests/fixtures/alert-table-2026-09-30.html` holds that table as the tool outputs it. `tests/run.php` checks that the renderer reproduces it byte for byte, and, when `tests/fixtures/RTS300926.xlsx` is present, that the whole pipeline (file → table) does too. Change the golden file only if the Alert table itself changes.
 
 ---
 
