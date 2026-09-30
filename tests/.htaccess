@@ -1,0 +1,2 @@
+# Not web-accessible: only index.php uses these files.
+Require all denied

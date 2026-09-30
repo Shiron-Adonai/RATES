@@ -1,0 +1,15 @@
+# Rates Publisher — Apache rules (needs AllowOverride All, see docs/OPERATOR.md)
+
+# No directory listings
+Options -Indexes
+
+# Hide dotfiles/dot-folders (.git, .remember, .htaccess …) and Markdown docs
+RedirectMatch 404 /\.
+<FilesMatch "\.(md|log)$">
+    Require all denied
+</FilesMatch>
+
+# Keep PHP warnings off the page even before index.php runs (mod_php, as in XAMPP)
+<IfModule php_module>
+    php_flag display_errors off
+</IfModule>
