@@ -1,0 +1,15 @@
+services:
+  rates:
+    build:
+      context: .
+      target: app
+    image: rates-publisher:latest
+    ports:
+      - "8087:80"   # http://192.168.0.20:8087
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "php", "-r", "exit(@file_get_contents('http://localhost/assets/css/style.css') === false ? 1 : 0);"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s

@@ -1,0 +1,8 @@
+.git
+.github
+.remember
+docs
+Dockerfile
+compose.yml
+tests/fixtures/*.xlsx
+tests/fixtures/*.csv

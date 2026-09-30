@@ -1,0 +1,41 @@
+name: Deploy to devbox
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# One deploy at a time; a newer push waits instead of cancelling a running one
+concurrency:
+  group: deploy-rates
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: [self-hosted, devbox]   # must match the devbox runner's labels
+    steps:
+      - uses: actions/checkout@v4
+
+      # The image build runs tests/run.php; a failing test stops the deploy here
+      # and the current container keeps running.
+      - name: Build and start
+        run: docker compose -p rates up -d --build --remove-orphans
+
+      - name: Check the site responds
+        run: |
+          for i in $(seq 1 30); do
+            if docker compose -p rates exec -T rates php -r "exit(@file_get_contents('http://localhost/') === false ? 1 : 0);"; then
+              echo "Live at http://192.168.0.20:8087"
+              exit 0
+            fi
+            sleep 2
+          done
+          docker compose -p rates logs --tail 50 rates
+          exit 1
+
+      - name: Remove old images
+        if: always()
+        run: docker image prune -f

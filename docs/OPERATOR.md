@@ -80,6 +80,21 @@ The root `.htaccess` sets `php_flag display_errors off`, which only applies with
 
 Behind a reverse proxy (e.g. Nginx Proxy Manager) use HTTPS so the copy buttons can use the modern clipboard API. **Do not expose the tool to the internet without access control** (see §6).
 
+### Deployment on devbox (Docker)
+
+The repository deploys itself to the devbox server on every push to `main`:
+
+| File | Role |
+|---|---|
+| `Dockerfile` | `php:8.4-apache` + the `zip` extension (no Composer needed). A `test` stage runs `php tests/run.php`; if a test fails the build stops and the running version stays up. The final image contains only `index.php`, `.htaccess`, `includes/` and `assets/`. |
+| `docker/php.ini`, `docker/apache.conf` | Upload limits (6 MB / 8 MB), errors to the container log, `.htaccess` enabled, Apache version hidden. |
+| `compose.yml` | Service `rates` on port **8087** → <http://192.168.0.20:8087>, restart unless stopped, health check. |
+| `.github/workflows/deploy.yml` | On push to `main`, the devbox runner runs `docker compose -p rates up -d --build`, then checks the page responds. |
+
+Watch a deploy in the repository's **Actions** tab. Logs: `docker compose -p rates logs -f` on devbox. Sessions live inside the container, so a redeploy clears any result a user had open (they upload the file again).
+
+The site is reachable by anyone on the network who can reach devbox and has **no login** (see §6). Over plain `http://192.168.0.20` browsers do not allow the modern clipboard API, so the copy buttons use the fallback method; if copying fails, select and press Ctrl+C.
+
 ---
 
 ## 4. Configuration
